@@ -6,6 +6,7 @@ class ApiUrl {
 
     // Authentication
     static Authentication_Login = EnvConfig.getApiHost() + "/api/Authentication/Login";
+    static Authentication_LoginBySinhTracHoc = EnvConfig.getApiHost() + "/api/Authentication/LoginBySinhTracHoc";
     static Authentication_Logout = EnvConfig.getApiHost() + "/api/Authentication/Logout";
 
     //StorePriceStandardREResidential
@@ -45,6 +46,12 @@ class ApiUrl {
     static Notification_ExecuteNotification = EnvConfig.getApiHost() + "/api/notification/ExecuteNotification";
 
     static Comment_ExecuteComment = EnvConfig.getApiHost() + "/api/comment/Execute";
+
+    static Contact_Execute = EnvConfig.getApiHost() + "/api/Contact/Execute";
+
+    static Profile_Execute = EnvConfig.getApiHost() + "/api/Profiles/Execute";
+
+
 }
 
 export default ApiUrl;

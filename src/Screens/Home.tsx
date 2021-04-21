@@ -235,9 +235,8 @@ export default class Home extends Component<iProps, iState> {
                 {item.Attachment ? (
                     <ImageBackground
                         source={{
-                            uri: `${ApiUrl.Attachment_ImagePreview}?id=${item.Attachment!.AttachmentID}&ecm=${
-                                item.Attachment!.ECMItemID
-                            }&name=${item.Attachment!.FileName}&size=1&token=${GlobalCache.UserToken}`,
+                            uri: `${ApiUrl.Attachment_ImagePreview}?id=${item.Attachment!.AttachmentID}&ecm=${item.Attachment!.ECMItemID
+                                }&name=${item.Attachment!.FileName}&size=1&token=${GlobalCache.UserToken}`,
                         }}
                         style={{ width: 250, height: 220 }}
                         imageStyle={{ borderRadius: 15 }}
@@ -314,11 +313,18 @@ export default class Home extends Component<iProps, iState> {
         return (
             <View style={{ flex: 1, backgroundColor: "white" }}>
                 <Toolbar Title="Trang chủ" navigation={this.props.navigation} IsHome={true}>
-                    <View style={{ marginLeft: 10 }}>
+                    <View style={{ marginLeft: 15 }}>
+                        <TouchableOpacity activeOpacity={0.5} onPress={() => {
+                            this.props.navigation.navigate("ProfilesSrc");
+                        }}>
+                            <FontAwesome5 name="user" size={23} color="#597EF7" />
+                        </TouchableOpacity>
+                    </View>
+                    {/* <View style={{ marginLeft: 10 }}>
                         <TouchableOpacity activeOpacity={0.5} onPress={() => this.setState({ ShowContextMenu: true })}>
                             <FontAwesome5 name="user" size={20} color="#B3BDC6" />
                         </TouchableOpacity>
-                    </View>
+                    </View> */}
                 </Toolbar>
 
                 <ScrollView>
@@ -354,25 +360,25 @@ export default class Home extends Component<iProps, iState> {
                             >
                                 {this.state.LstDateOfWeek.length > 0
                                     ? this.state.LstDateOfWeek.map((en, i) => (
-                                          <TouchableOpacity
-                                              style={{
-                                                  borderWidth: 1,
-                                                  borderColor: "gainsboro",
-                                                  padding: 10,
-                                                  borderRadius: 100,
-                                                  marginHorizontal: 5,
-                                                  backgroundColor:
-                                                      en.getDate() == this.state.DateReq.getDate()
-                                                          ? "#fca311"
-                                                          : "white",
-                                              }}
-                                              onPress={() => {
-                                                  this.setState({ DateReq: en }, () => this.LoadNotification());
-                                              }}
-                                          >
-                                              <Text>{Utility.GetDateString(en)}</Text>
-                                          </TouchableOpacity>
-                                      ))
+                                        <TouchableOpacity
+                                            style={{
+                                                borderWidth: 1,
+                                                borderColor: "gainsboro",
+                                                padding: 10,
+                                                borderRadius: 100,
+                                                marginHorizontal: 5,
+                                                backgroundColor:
+                                                    en.getDate() == this.state.DateReq.getDate()
+                                                        ? "#fca311"
+                                                        : "white",
+                                            }}
+                                            onPress={() => {
+                                                this.setState({ DateReq: en }, () => this.LoadNotification());
+                                            }}
+                                        >
+                                            <Text>{Utility.GetDateString(en)}</Text>
+                                        </TouchableOpacity>
+                                    ))
                                     : undefined}
                             </ScrollView>
                             <ScrollView>

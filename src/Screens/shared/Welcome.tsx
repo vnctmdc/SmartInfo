@@ -58,11 +58,11 @@ export default class Welcome extends Component<any, any> {
         //     }
         // ).start();
 
-        await Animated.timing(springValue, {
-            toValue: 1,
-            duration: 1500,
-            easing: Easing.quad,
-        }).start(springValue);
+        // await Animated.timing(springValue, {
+        //     toValue: 1,
+        //     duration: 1500,
+        //     easing: Easing.quad,
+        // }).start(springValue);
 
         await this.initApplication();
     }    
@@ -77,13 +77,12 @@ export default class Welcome extends Component<any, any> {
                 Device.modelName
             }\nVersion: ${EnvConfig.getVersion()}`;
 
-            let appInfo = await HttpUtils.get<AppInfomation>(
+            let appInfo = await HttpUtils.post<AppInfomation>(
                 ApiUrl.Global_GetVersion_Api,
                 null,
                 JSON.stringify(request),
                 false
-            );
-            console.log(appInfo);
+            );            
 
             // cache api key
             if (Platform.OS == "android") {
@@ -142,7 +141,7 @@ export default class Welcome extends Component<any, any> {
         });
         return (
             <View style={{ flex: 1 }}>
-                <View style={{ flex: 0.35 }}>
+                <View style={{ flex: 0.25 }}>
                     <View
                         style={{
                             height: screen_width * 0.7,
@@ -164,9 +163,9 @@ export default class Welcome extends Component<any, any> {
                             top: -(screen_width / 4),
                             alignItems: "center",
                         }}
-                    ></View>
+                    />
                 </View>
-                <View style={{ flexGrow: 0.35 }}>
+                <View style={{ flexGrow: 0.45 }}>
                     <View style={{ flex: 1, justifyContent: "center" }}>
                         <Animatable.View
                             animation="fadeInLeftBig"
@@ -175,8 +174,12 @@ export default class Welcome extends Component<any, any> {
                             style={{ alignItems: "center", transform: [{ rotate: spin }] }}
                         >
                             <Image
-                                style={{ width: "80%", height: 100, resizeMode: "contain" }}
-                                source={require("../../../assets/logo.png")}
+                                style={{ width: "60%", height: 80, resizeMode: "contain" }}
+                                source={require("../../../assets/Logo_MB_new.png")}
+                            />
+                            <Image
+                                style={{ width: "60%", height: 80, resizeMode: "contain" }}
+                                source={require("../../../assets/logo1.png")}
                             />
                         </Animatable.View>
                     </View>

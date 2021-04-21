@@ -43,4 +43,7 @@ export default class News {
     public PressAgency?: string;
     public Resolution?: string;
     public ResolutionContent?: string;
+    public FromIncurredDTG?: Date;
+    public ToIncurredDTG?: Date;
+    public SearchText?: string;
 }

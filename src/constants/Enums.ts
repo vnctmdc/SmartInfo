@@ -116,7 +116,16 @@ enum AttachmentRefType {
     PressAgencyHROtherImage = 11,
 }
 
+enum PressAgencyType {
+    All = 0,
+    PressAgency = 1,
+    Other = 2,
+    StateAgencies = 3,
+    ResCofShopOther = 4,
+}
+
 export {
+    PressAgencyType,
     Rate,
     CommentRefType,
     Classification,

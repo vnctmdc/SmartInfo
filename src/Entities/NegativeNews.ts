@@ -28,5 +28,8 @@ export default class NegativeNews {
     public AttachmentID: number;
     public ECMItemID: number;
     public FileName: string;
+    public FromIncurredDTG?: Date;
+    public ToIncurredDTG?: Date;
+    public SearchText?: string;
 
 }

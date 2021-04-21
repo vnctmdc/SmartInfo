@@ -4,6 +4,8 @@ export default class SMX {
         static GlobalStore = "GlobalStore";
     };
 
+    static BtnColor = ["#007AFF", "#007AFF"];
+
     static NotificationType = class {
         static dicName: iKeyValuePair<Enums.NotificationType, string>[] = [
             { Key: Enums.NotificationType.SinhNhat, Value: "Sinh nhật" },
@@ -131,6 +133,8 @@ export default class SMX {
     };
 
     static ApiActionCode = class {
+        static Login = "Login";
+        static LoginBySinhTracHoc = "LoginBySinhTracHoc";
         static SetupViewForm = "SetupViewForm";
         static SearchData = "SearchData";
         static SetupEditForm = "SetupEditForm";
@@ -148,9 +152,13 @@ export default class SMX {
         static HistoryApproval = "HistoryApproval";
         static DetailDisplay = "DetailDisplay";
         static UpdateAttachment = "UpdateAttachment";
+        static SearchNegativeNews = "SearchNegativeNews";
 
         static HRDetail = "HRDetail";
         static HomeDisplay = "HomeDisplay";
+
+        static SetupFormDefault = "SetupFormDefault";
+        static GetProfile = "GetProfile";
     };
 
     static Features = class {

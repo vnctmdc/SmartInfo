@@ -1,4 +1,5 @@
 import { observable, action, runInAction, computed, IObservableValue } from "mobx";
+import { NegativeNewsFilter } from "../DtoParams/NegativeNewsDto";
 import { SMXException } from "../SharedEntity/SMXException";
 
 export default class GlobalStore {
@@ -15,6 +16,10 @@ export default class GlobalStore {
     @observable IsHasNotification?: any;
 
     @observable UpdateImageTrigger?: any;
+
+    @observable AdvanceSearchValue?: NegativeNewsFilter;
+
+    @observable AdvanceSearchTrigger?: any;
 
     // Bật loading
     @action ShowLoading() {

@@ -43,6 +43,11 @@ export default StyleSheet.create({
         padding: 7,
         flex: 1,
     },
+    BtnTextGradient: {
+        backgroundColor: "transparent",
+        fontSize: 15,
+        color: "#FFFFFF",
+    },
     DropdownListInput: {
         flexDirection: "row",
         padding: 7,
@@ -50,6 +55,16 @@ export default StyleSheet.create({
         borderRadius: 15,
         fontSize: 15,
         backgroundColor: "#F5F5F5",
+    },
+    DropdownListInputSmall: {
+        flexDirection: "row",
+        padding: 7,
+        flex: 1,
+        borderRadius: 5,
+        fontSize: 15,
+        backgroundColor: "#FFFFFF",
+        borderWidth: 1,
+        borderColor: "#99b4d1",
     },
     TimeInput: {
         flexDirection: "row",
@@ -188,5 +203,31 @@ export default StyleSheet.create({
         backgroundColor: "white",
         flexDirection: "row",
         alignItems: "center",
+    },
+    ViewGeneral: {
+        backgroundColor: "#FFFFFF",
+        marginTop: 8,
+        borderRadius: 6
+    },
+    ViewTitle: {
+        backgroundColor: '#141ED2',
+        paddingHorizontal: 8,
+        paddingVertical: 12,
+        flexDirection: "row",
+        justifyContent: "space-between",
+        borderTopLeftRadius: 5,
+        borderTopRightRadius: 5,
+    },
+    ViewContent: {
+        paddingHorizontal: 8,
+        paddingVertical: 12,
+        borderBottomLeftRadius: 5,
+        borderBottomRightRadius: 5,
+        borderRightColor: "#7ba6c2",
+        borderRightWidth: 1,
+        borderLeftColor: "#7ba6c2",
+        borderLeftWidth: 1,
+        borderBottomColor: "#7ba6c2",
+        borderBottomWidth: 1,
     },
 });

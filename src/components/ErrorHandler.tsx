@@ -17,10 +17,16 @@ interface iState {}
 @observer
 export default class ErrorHandler extends React.Component<iProps, iState> {
     handlerPostFailed(msg?: string) {
-        setTimeout(() => {
-            alert(msg);
-        }, 100);
-        return <View></View>;
+        // setTimeout(() => {
+        //     alert(msg);
+        // }, 100);
+        return (
+            <SMAlert
+                Title={"Có lỗi xảy ra"}
+                Message={msg}               
+                Show={true}
+            />
+        );
     }
 
     handlerGetFailed(msg?: string) {
@@ -28,9 +34,9 @@ export default class ErrorHandler extends React.Component<iProps, iState> {
             <SMAlert
                 Title={"Có lỗi xảy ra"}
                 Message={msg}
-                okClick={() => {
-                    reload();
-                }}
+                // okClick={() => {
+                //     reload();
+                // }}
                 Show={true}
             />
         );

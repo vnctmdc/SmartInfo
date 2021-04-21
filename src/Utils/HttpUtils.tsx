@@ -18,8 +18,8 @@ export default class HttpUtils {
         includeToken: boolean,
         actionType: string
     ) {
-        console.log(apiUrl);
-        console.log(bodyContent);
+        //console.log(apiUrl);
+        //console.log(bodyContent);
 
         // let connectOK = false; // Trạng thái connect
         // let httpStatus = -1; // Giá trị trả về
@@ -71,10 +71,12 @@ export default class HttpUtils {
                 let ex = new SMXException();
                 if (actionType === "POST") {
                     ex.Type = ExceptionType.PostFailed;
+                    ex.Message = "Kết nối máy chủ thất bại, vui lòng kiểm tra internet";
                 } else {
                     ex.Type = ExceptionType.GetFailed;
+                    ex.Message = "Kết nối máy chủ thất bại, vui lòng kiểm tra internet";
                 }
-                throw "Kết nối máy chủ thất bại, vui lòng kiểm tra internet";
+                throw ex;                
             });
         if (httpStatus === 200) {
             return response as T;

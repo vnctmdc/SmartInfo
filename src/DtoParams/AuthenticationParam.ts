@@ -7,5 +7,7 @@ class AuthenticationParam extends BaseParam {
     public UserToken?: string;
 
     public Employee?: Employee;
+    public DeviceName?: string;
+    public Guid?: string;
 }
 export default AuthenticationParam;

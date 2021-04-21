@@ -17,6 +17,7 @@ import {
     TouchableOpacity,
     StatusBar,
     Vibration,
+    Alert,
 } from "react-native";
 
 import LoadingModal from "../../components/LoadingModal";
@@ -32,7 +33,7 @@ import GlobalStore from "../../Stores/GlobalStore";
 import { inject, observer } from "mobx-react";
 import SMX from "../../constants/SMX";
 import AntDesign from "react-native-vector-icons/AntDesign";
-import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 //@ts-ignore
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import * as Animatable from "react-native-animatable";
@@ -40,8 +41,22 @@ import { Notifications } from "expo";
 import * as Permissions from "expo-permissions";
 import { NotifyDto } from "../../DtoParams/NotifyDto";
 import DeviceTokenDto from "../../DtoParams/DeviceTokenDto";
+import { LinearGradient } from "expo-linear-gradient";
+
+import * as Device from "expo-device";
+import * as LocalAuthentication from "expo-local-authentication";
+import PopupModalUpdateNote from "../../components/PopupModalUpdateNote";
+
 
 const { width: viewportWidth, height: viewportHeight } = Dimensions.get("window");
+
+//config is optional to be passed in on Android
+const optionalConfigObject = {
+    title: "Authentication Required", // Android
+    color: "#e00606", // Android,
+    fallbackLabel: "Show Passcode" // iOS (if empty, then label is hidden)
+}
+
 interface iProps {
     GlobalStore?: GlobalStore;
     navigation?: any;
@@ -55,6 +70,12 @@ interface iState {
     IsLoading?: boolean;
     expoToken: string;
     notification?: any;
+    FINGERPRINT?: boolean;
+    FACIAL_RECOGNITION?: boolean;
+    showConfirmFingerprint: boolean;
+    showConfirmFace: boolean;
+    touch?: boolean;
+    face?: boolean;
 }
 
 @inject(SMX.StoreName.GlobalStore)
@@ -65,10 +86,13 @@ export default class Login extends Component<iProps, iState> {
         this.state = {
             IsLoading: false,
             expoToken: "",
+            showConfirmFingerprint: false,
+            showConfirmFace: false,
         };
     }
 
     async componentDidMount() {
+        await this.checkDeviceForHardware();
         // register token notification
         await this.registerForPushNotificationsAsync();
 
@@ -78,11 +102,23 @@ export default class Login extends Component<iProps, iState> {
         await this.initApplication();
     }
 
+    checkDeviceForHardware = async () => {
+        let lstType = await LocalAuthentication.supportedAuthenticationTypesAsync();
+        let isFingerprint = lstType.includes(1);
+        let isFace = lstType.includes(2);
+
+        this.setState({ FINGERPRINT: isFingerprint, FACIAL_RECOGNITION: isFace });
+
+    };
+
     async initApplication() {
         // Lấy thông tin đăng nhập từ Local Storage
         try {
             let _userName = await AsyncStorage.getItem("USER_NAME");
             let _passWord = await AsyncStorage.getItem("PASS_WORD");
+
+            let _touch = await AsyncStorage.getItem("FINGERPRINT");
+            let _face = await AsyncStorage.getItem("FACIAL_RECOGNITION");
 
             // Nếu đã lưu tài khoản thì bật saveLogin
             let _saveLogin: boolean = false;
@@ -91,9 +127,11 @@ export default class Login extends Component<iProps, iState> {
             }
             // Bind thông tin đăng nhập vào State
             this.setState({
-                //userName: _userName,
-                //passWord: _passWord,
+                userName: _userName,
+                passWord: _passWord,
                 saveLogin: _saveLogin,
+                touch: _touch === 'true' ? true : false,
+                face: _face === 'true' ? true : false
             });
         } catch (ex) {
             //this.props.GlobalStore!.Exception! = ex;
@@ -122,7 +160,7 @@ export default class Login extends Component<iProps, iState> {
             // Post thông tin đăng nhập
             let response: any = await HttpUtils.post<AuthenticationParam>(
                 ApiUrl.Authentication_Login,
-                "Login",
+                SMX.ApiActionCode.Login,
                 JSON.stringify(request),
                 false
             );
@@ -157,6 +195,90 @@ export default class Login extends Component<iProps, iState> {
         }
     }
 
+    async loginBySinhTracHoc() {
+        try {
+            // Checking if device is compatible
+            const isCompatible = await LocalAuthentication.hasHardwareAsync();
+
+            if (!isCompatible) {
+                throw new Error("Thiết bị của bạn không tương thích với chức năng này.");
+            }
+
+            // Checking if device has biometrics records
+            const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+
+            if (!isEnrolled) {
+                throw new Error("Bạn chưa thiết lập sinh trắc học cho thiết bị này.");
+            }
+
+            // Authenticate user
+            const results = await LocalAuthentication.authenticateAsync();
+
+            if (results.success) {
+                await this.LoginFinger();
+            } else {
+                throw new Error("Đăng nhập bằng sinh trắc học thất bại, vui lòng thử lại.");
+            }
+
+            //
+        } catch (error) {
+            Alert.alert("Thông báo ", error?.message);
+        }
+    }
+
+    async LoginFinger() {
+        try {
+            this.setState({
+                IsLoading: true, // Bật loading
+            });
+            let guid =
+                Platform.OS == "android"
+                    ? Device.osBuildFingerprint
+                    : `${Device.brand}/${Device.osVersion}/${Device.modelId}/${Device.osBuildId}`;
+
+            let request = new AuthenticationParam();
+            request.UserName = this.state.userName;
+            request.Guid = guid;
+            request.DeviceName = Device.modelName;
+            if (request.UserName === null || request.UserName === "") {
+                throw "Vui lòng cung cấp tên đăng nhập.";
+            }
+
+            // Post thông tin đăng nhập
+            let response = await HttpUtils.post<AuthenticationParam>(
+                ApiUrl.Authentication_LoginBySinhTracHoc,
+                SMX.ApiActionCode.LoginBySinhTracHoc,
+                JSON.stringify(request),
+                false
+            );
+
+            // Cache token vào global
+            GlobalCache.UserToken = response.UserToken;
+            GlobalCache.Profile = response.Employee;
+
+            // Nhớ thông tin đăng nhập vào LocalStorage
+            await this.rememberLogin();
+
+            // Load cache vào global
+            //await this.loadCache();
+
+            this.setState({
+                IsLoading: false,
+            });
+
+            // Nhảy sang trang home
+            this.props.navigation.navigate("Tabs");
+        } catch (e) {
+            // Tắt loading
+            this.setState({
+                IsLoading: false,
+            });
+            this.props.GlobalStore.Exception = e;
+
+            //alert(e);
+        }
+    }
+
     _handleNotification = (notification: any) => {
         Vibration.vibrate(1);
         //console.log('receive',notification);
@@ -181,7 +303,7 @@ export default class Login extends Component<iProps, iState> {
     };
 
     PostExpoTokenNotification = async () => {
-        console.log("token: ", this.state.expoToken);
+        //console.log("token: ", this.state.expoToken);
         // insert token device to server
         if (this.state.expoToken != "") {
             let request = new DeviceTokenDto();
@@ -208,10 +330,17 @@ export default class Login extends Component<iProps, iState> {
         }
     }
 
+    showConfirmFingerprint = () => {
+        this.setState({ showConfirmFingerprint: !this.state.showConfirmFingerprint });
+    };
+    showConfirmFace = () => {
+        this.setState({ showConfirmFace: !this.state.showConfirmFace });
+    };
+
     render() {
         return (
             <View style={{ flexGrow: 1, backgroundColor: "white" }}>
-                <View style={{ marginTop: Platform.OS === "ios" ? 34 : 26 }}></View>
+                <View style={{ marginTop: Platform.OS === "ios" ? 40 : 26 }}></View>
                 <View style={styles.body}>
                     <View
                         style={{
@@ -221,7 +350,7 @@ export default class Login extends Component<iProps, iState> {
                         }}
                     >
                         <Image
-                            style={{ height: 50, width: 150, resizeMode: "contain" }}
+                            style={{ height: 70, width: 270, resizeMode: "contain" }}
                             source={require("../../../assets/logo.png")}
                         />
                     </View>
@@ -271,6 +400,7 @@ export default class Login extends Component<iProps, iState> {
                                     }}
                                 />
                             </View>
+
                             {/* <View
                                 style={{
                                     flexDirection: "row",
@@ -290,8 +420,88 @@ export default class Login extends Component<iProps, iState> {
                                 <View style={{ marginLeft: 10 }}>
                                     <Text>Lưu thông tin đăng nhập</Text>
                                 </View>
+                            </View>
+                            <View
+                                style={{
+                                    width: viewportWidth - 60,
+                                    justifyContent: "center",
+                                }}
+                            >
                             </View> */}
-                            <TouchableOpacity
+
+                            <View style={{ flexDirection: "row", margin: 10 }}>
+                                <TouchableOpacity
+                                    style={{
+                                        width: viewportWidth - 150,
+                                        height: 50,
+                                        backgroundColor: "#007AFF",
+                                        justifyContent: "center",
+                                        borderColor: 'gainsboro',
+                                        marginTop: 30,
+                                        borderTopStartRadius: 5,
+                                        borderBottomStartRadius: 5,
+                                        padding: 8,
+                                        borderEndWidth: 1,
+                                    }}
+                                    onPress={() => {
+                                        this.login();
+                                    }}
+                                >
+                                    <Text style={{ color: "#FFFFFF", fontSize: 18, textAlign: "center" }}>Đăng nhập</Text>
+                                </TouchableOpacity>
+
+                                {
+                                    this.state.FACIAL_RECOGNITION == true ? (
+                                        <TouchableOpacity
+                                            style={{
+                                                width: 50,
+                                                height: 50,
+                                                marginTop: 30,
+                                                justifyContent: "center",
+                                                backgroundColor: "#007AFF",
+                                                borderBottomRightRadius: 5,
+                                                borderTopRightRadius: 5,
+                                                padding: 10,
+                                            }}
+                                            onPress={() => {
+                                                if (this.state.face == true) {
+                                                    this.loginBySinhTracHoc();
+                                                } else {
+                                                    this.setState({ showConfirmFace: true });
+                                                }
+                                            }}
+                                        >
+                                            <Image
+                                                style={{ height: 35, width: 35, resizeMode: "contain" }}
+                                                source={require("../../../assets/face-id.png")}
+                                            />
+                                        </TouchableOpacity>
+                                    ) : (
+                                        <TouchableOpacity
+                                            style={{
+                                                width: 50,
+                                                height: 50,
+                                                marginTop: 30,
+                                                justifyContent: "center",
+                                                backgroundColor: "#007AFF",
+                                                borderBottomRightRadius: 5,
+                                                borderTopRightRadius: 5,
+                                                padding: 10,
+                                            }}
+                                            onPress={() => {
+                                                if (this.state.touch == true) {
+                                                    this.loginBySinhTracHoc();
+                                                } else {
+                                                    this.setState({ showConfirmFingerprint: true });
+                                                }
+                                            }}
+                                        >
+                                            <MaterialIcons name="fingerprint" size={30} color="#FFFFFF" />
+                                        </TouchableOpacity>
+                                    )
+                                }
+                            </View>
+                            {/* <TouchableOpacity
                                 style={{
                                     width: viewportWidth - 60,
                                     height: 50,
@@ -305,9 +515,79 @@ export default class Login extends Component<iProps, iState> {
                                 }}
                             >
                                 <Text style={{ color: "#FFF", fontSize: 18, textAlign: "center" }}>Đăng nhập</Text>
-                            </TouchableOpacity>
+                            </TouchableOpacity> */}
                         </Animatable.View>
                     </KeyboardAwareScrollView>
+
+                    <PopupModalUpdateNote
+                        resetState={this.showConfirmFingerprint}
+                        modalVisible={this.state.showConfirmFingerprint}
+                        title="Thông báo"
+                    >
+                        <View style={{ padding: 10, marginBottom: 15 }}>
+                            <Text style={{ fontSize: 15 }}>Bạn chưa cài đặt đăng nhập bằng vân tay. Vui lòng đăng nhập vào tài khoản bằng mật khẩu và cài đặt xác thực vân tay trong phần "Thông tin người đăng nhập". </Text>
+                        </View>
+
+                        <View style={{ marginVertical: 10, flexDirection: "row", justifyContent: "center" }}>
+                            <TouchableOpacity
+                                onPress={() => {
+                                    this.setState({ showConfirmFingerprint: false });
+                                }}
+                            >
+                                <LinearGradient
+                                    colors={["#007AFF", "#007AFF"]}
+                                    style={{
+                                        width: viewportWidth / 2,
+                                        backgroundColor: "#007AFF",
+                                        padding: 10,
+                                        justifyContent: "center",
+                                        alignItems: "center",
+                                        borderRadius: 5,
+                                        alignSelf: "center",
+                                        marginRight: 5,
+                                    }}
+                                >
+                                    <Text style={[Theme.BtnTextGradient, { fontSize: 15, color: '#FFFFFF' }]}>Đồng ý</Text>
+                                </LinearGradient>
+                            </TouchableOpacity>
+                        </View>
+
+                    </PopupModalUpdateNote>
+
+                    <PopupModalUpdateNote
+                        resetState={this.showConfirmFace}
+                        modalVisible={this.state.showConfirmFace}
+                        title="Thông báo"
+                    >
+                        <View style={{ padding: 10, marginBottom: 15 }}>
+                            <Text style={{ fontSize: 15 }}>Bạn chưa cài đặt đăng nhập bằng nhận diện khuôn mặt. Vui lòng đăng nhập vào tài khoản bằng mật khẩu và cài đặt xác thực nhận diện khuôn mặt trong phần "Thông tin người đăng nhập". </Text>
+                        </View>
+
+                        <View style={{ marginVertical: 10, flexDirection: "row", justifyContent: "center" }}>
+                            <TouchableOpacity
+                                onPress={() => {
+                                    this.setState({ showConfirmFace: false });
+                                }}
+                            >
+                                <LinearGradient
+                                    colors={["#007AFF", "#007AFF"]}
+                                    style={{
+                                        width: viewportWidth / 2,
+                                        backgroundColor: "#007AFF",
+                                        padding: 10,
+                                        justifyContent: "center",
+                                        alignItems: "center",
+                                        borderRadius: 5,
+                                        alignSelf: "center",
+                                        marginRight: 5,
+                                    }}
+                                >
+                                    <Text style={[Theme.BtnTextGradient, { fontSize: 15, color: '#FFFFFF' }]}>Đồng ý</Text>
+                                </LinearGradient>
+                            </TouchableOpacity>
+                        </View>
+
+                    </PopupModalUpdateNote>
 
                     {/* <Animatable.View
                         animation="bounceInDown"
@@ -324,7 +604,7 @@ export default class Login extends Component<iProps, iState> {
                     </Animatable.View> */}
                     <LoadingModal Loading={this.state.IsLoading} />
                 </View>
-            </View>
+            </View >
         );
     }
 }
@@ -340,19 +620,26 @@ const styles = StyleSheet.create({
         borderTopRightRadius: 5,
         padding: 5,
         borderColor: "gainsboro",
-        borderTopWidth: Platform.OS === "ios" ? 1 : 0,
-        borderBottomWidth: Platform.OS === "ios" ? 1 : 0,
+        borderTopWidth: 1,
+        borderBottomWidth: 1,
+        borderRightWidth: 1,
+        //borderTopWidth: Platform.OS === "ios" ? 1 : 0,
+        //borderBottomWidth: Platform.OS === "ios" ? 1 : 0,
         //borderLeftWidth: Platform.OS === "ios" ? 0.5 : 0,
-        borderRightWidth: Platform.OS === "ios" ? 1 : 0,
+        //borderRightWidth: Platform.OS === "ios" ? 1 : 0,
     },
     icon: {
         borderTopStartRadius: 5,
         borderBottomStartRadius: 5,
         padding: 8,
         borderColor: "gainsboro",
-        //borderEndWidth: Platform.OS === "ios" ? 0.5 : 0,
-        borderLeftWidth: Platform.OS === "ios" ? 1 : 0,
-        borderTopWidth: Platform.OS === "ios" ? 1 : 0,
-        borderBottomWidth: Platform.OS === "ios" ? 1 : 0,
+        borderEndWidth: 1,
+        borderLeftWidth: 1,
+        borderTopWidth: 1,
+        borderBottomWidth: 1
+        // borderEndWidth: Platform.OS === "ios" ? 0.5 : 0,
+        // borderLeftWidth: Platform.OS === "ios" ? 1 : 0,
+        // borderTopWidth: Platform.OS === "ios" ? 1 : 0,
+        // borderBottomWidth: Platform.OS === "ios" ? 1 : 0,
     },
 });

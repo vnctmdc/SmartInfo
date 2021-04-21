@@ -15,11 +15,15 @@ export default class agency_PressAgencyHR {
 
     public Email?: string;
 
+    public Address?: string;
+
     public Hobby?: string;
 
     public RelatedInformation?: string;
 
     public Attitude?: number;
+
+    public PressAgencyType?: number;
 
     public Attachment: adm_Attachment = new adm_Attachment();
 }

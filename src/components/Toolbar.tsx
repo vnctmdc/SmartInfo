@@ -58,7 +58,7 @@ export default class Toolbar extends React.Component<iProps, any> {
                     <View></View>
                     <Image
                         source={require("../../assets/logo.png")}
-                        style={{ width: 100, height: 30, resizeMode: "contain" }}
+                        style={{ width: 170, height: 50, resizeMode: "contain" }}
                     />
                     <View style={{ flexDirection: "row", alignItems: "center" }}>{this.props.children}</View>
                 </View>

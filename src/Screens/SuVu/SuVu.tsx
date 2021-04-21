@@ -61,6 +61,11 @@ export default class SuVuScreen extends React.Component<iProps, iState> {
         BackHandler.addEventListener("hardwareBackPress", this.handleBackPress);
 
         await this.LoadData(false);
+
+        this.props.GlobalStore.AdvanceSearchTrigger = () => {
+            this.LoadData(false);
+        };
+
     }
 
     handleBackPress = () => {
@@ -72,19 +77,34 @@ export default class SuVuScreen extends React.Component<iProps, iState> {
             this.props.GlobalStore.ShowLoading();
 
             let request = new NegativeNewsDto();
-            let filter = new NegativeNewsFilter();
-            filter.PageIndex = this.state.PageIndex;
-            request.Filter = filter;
+            if (this.props.GlobalStore.AdvanceSearchValue != undefined) {
+                request.Filter = this.props.GlobalStore.AdvanceSearchValue;
+            } else {
+                let filter = new NegativeNewsFilter();
+                filter.PageIndex = this.state.PageIndex;
+                filter.News = new News();
+                filter.NegativeNews = new NegativeNews();
+                request.Filter = filter;
+            }
+
             let res = await HttpUtils.post<NegativeNewsDto>(
                 ApiUrl.NegativeNews_ExecuteNegativeNews,
-                SMX.ApiActionCode.SearchData,
+                SMX.ApiActionCode.SearchNegativeNews,
                 JSON.stringify(request),
                 true
             );
 
+            // let res = await HttpUtils.post<NegativeNewsDto>(
+            //     ApiUrl.NegativeNews_ExecuteNegativeNews,
+            //     SMX.ApiActionCode.SearchData,
+            //     JSON.stringify(request),
+            //     true
+            // );
+
             if (!IsLoadMore) this.setState({ LstNews: res.LstNews! });
             else this.setState({ LstNews: this.state.LstNews.concat(res.LstNews!) });
 
+            this.props.GlobalStore.AdvanceSearchValue = undefined;
             this.props.GlobalStore.HideLoading();
         } catch (ex) {
             this.props.GlobalStore.Exception = ex;
@@ -170,6 +190,16 @@ export default class SuVuScreen extends React.Component<iProps, iState> {
         return (
             <View style={{ flex: 1, backgroundColor: "white" }}>
                 <Toolbar Title="Sự vụ" navigation={this.props.navigation} HasBottomTab={true}>
+                    <View style={{ marginLeft: 10 }}>
+                        <TouchableOpacity
+                            activeOpacity={0.5}
+                            onPress={() => {
+                                this.props.navigation.navigate("AdvanceSearch");
+                            }}
+                        >
+                            <AntDesign name="search1" size={27} color="#B3BDC6" />
+                        </TouchableOpacity>
+                    </View>
                     <View style={{ marginLeft: 10 }}>
                         <TouchableOpacity
                             activeOpacity={0.5}

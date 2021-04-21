@@ -92,8 +92,8 @@ export default class DateTimePicker extends Component<iProp, iState> {
     }
 
     setDate(newDate) {
-        console.log("SetDate");
-        console.log(newDate);
+        // console.log("SetDate");
+        // console.log(newDate);
 
         if (newDate) {
             // Do cả DatePicker và TimePicker cùng dùng chung 1 giá trị date. 

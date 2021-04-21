@@ -5,6 +5,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import { createSwitchNavigator } from "@react-navigation/compat";
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
+import AntDesign from "react-native-vector-icons/AntDesign";
 import Octicons from "react-native-vector-icons/Octicons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
@@ -28,7 +29,9 @@ import TinTucScreen from "../Screens/TinTuc/TinTuc";
 import TinTucDetailScreen from "../Screens/TinTuc/TinTucDetail";
 
 import SuVuScreen from "../Screens/SuVu/SuVu";
+import AdvanceSearchScreen from '../Screens/SuVu/AdvanceSearch';
 import CoQuanBaoTriScreen from "../Screens/CoQuanBaoTri/CoQuanBaoTri";
+import DanhBaScreen from "../Screens/DanhBa/Default";
 import ThongBaoScreen from "../Screens/ThongBao/ThongBao";
 import DetailNegativeNews from "../Screens/SuVu/Display";
 import CoQuanBaoTriDetailScreen from "../Screens/CoQuanBaoTri/CoQuanBaoTriDetail";
@@ -36,6 +39,7 @@ import ThongTinNhanSuScreen from "../Screens/CoQuanBaoTri/ThongTinNhanSu";
 import DetailDisplayNegativeNews from "../Screens/SuVu/DetailDisplay";
 import NotificationDisplay from "../Screens/ThongBao/Display";
 import UploadOrtherImage from "../Screens/CoQuanBaoTri/UploadOrtherImage";
+import ProfilesSrc from "../Screens/Profile/Display";
 
 // ? Default title style
 const defaultTitleStyle = {
@@ -119,6 +123,19 @@ function CoQuanBaoTris() {
     );
 }
 
+const DanhBaStack = createStackNavigator();
+function DanhBas() {
+    return (
+        <DanhBaStack.Navigator>
+            <DanhBaStack.Screen
+                name="DanhBa"
+                component={DanhBaScreen}
+                options={{ headerShown: false }}
+            />
+        </DanhBaStack.Navigator>
+    );
+}
+
 const Tab = createBottomTabNavigator();
 function Tabs() {
     return (
@@ -137,6 +154,7 @@ function Tabs() {
             />
             <Tab.Screen
                 name="Suvu"
+                initialRouteName="SuVu"
                 component={NeGativeNewsDisplay}
                 options={{
                     tabBarLabel: "Sự vụ",
@@ -148,7 +166,7 @@ function Tabs() {
                 component={TinTucs}
                 options={{
                     tabBarLabel: "Tin tức",
-                    tabBarIcon: ({ color, size }) => <FontAwesome name="file-text-o" color={color} size={size} />,
+                    tabBarIcon: ({ color, size }) => <FontAwesome name="file-text-o" color={color} size={size - 1} />,
                 }}
             />
             <Tab.Screen
@@ -157,6 +175,14 @@ function Tabs() {
                 options={{
                     tabBarLabel: "Tổ chức",
                     tabBarIcon: ({ color, size }) => <FontAwesome5 name="user-friends" color={color} size={size} />,
+                }}
+            />
+            <Tab.Screen
+                name="DanhBa"
+                component={DanhBas}
+                options={{
+                    tabBarLabel: "Danh Bạ",
+                    tabBarIcon: ({ color, size }) => <AntDesign name="contacts" color={color} size={size} />,
                 }}
             />
             <Tab.Screen
@@ -198,17 +224,21 @@ function NeGativeNewsDisplay() {
                 component={SuVuScreen}
                 options={{ headerShown: false, title: "Default", ...defaultTitleStyle }}
             />
-
             <NegativeNews.Screen
                 name="DetailNegativeNews"
                 component={DetailNegativeNews}
                 options={{ headerShown: false, title: "Display", ...defaultTitleStyle }}
             />
-
             <NegativeNews.Screen
                 name="DetailDisplayNegativeNews"
                 component={DetailDisplayNegativeNews}
                 options={{ headerShown: false, title: "Display", ...defaultTitleStyle }}
+            />
+            <NegativeNews.Screen
+                name="AdvanceSearch"
+                component={AdvanceSearchScreen}
+                tabBarOptions={tabBarVisible = false}
+                options={{ headerShown: false, title: "Default", ...defaultTitleStyle }}
             />
         </NegativeNews.Navigator>
     );
@@ -229,6 +259,7 @@ const SwitchStack = createSwitchNavigator(
     {
         Welcome: Welcome,
         SrcLogin: SrcLogin,
+        ProfilesSrc: ProfilesSrc,
         Tabs: Tabs,
         SrcError: Error,
     },
